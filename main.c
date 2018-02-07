@@ -144,7 +144,7 @@ int maxstr(char s1[], char s2[]) {
 
 int main(int argc, char *argv[]) {
 	int maxnum = 0;
-	if (argc - 1) {
+	if (argc > 1) {
 		char c[32] = {'\0'};
 		int a = 1;
 		sprintf(c, "%d", (a < 0 < (sizeof(a) * 8 - 1)) - 1);
@@ -156,17 +156,22 @@ int main(int argc, char *argv[]) {
 	}
 
 	int type = 0;
-	if (argc - 2)
+	if (argc > 2)
 		type = atoi(argv[2]);
 
-	int output = 1;
-	if (argc - 3)
+	int output = 0;
+	if (argc > 3)
 		output = atoi(argv[3]);
+
+	int sort = 0;
+	if (argc > 4)
+		sort = atoi(argv[4]);
 
 	if (!type) {
 		PythagoreanTriple p = getPythagoreanTriple(maxnum);
-		if (output) {
-			sortPythagoreanTriple(&p);
+		if (!output) {
+			if(sort)
+				sortPythagoreanTriple(&p);
 			for (int i = 0; i < p.size; i++) {
 				printf("%d+%di\n", p.c[i].real, p.c[i].imag);
 			}
@@ -175,7 +180,7 @@ int main(int argc, char *argv[]) {
 		free(p.c);
 	} else {
 		int number = getLenthOfPythagoreanTriple(maxnum);
-		if (output)
+		if (!output)
 			printf("%dnumbers\n", number);
 	}
 
