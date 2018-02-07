@@ -121,9 +121,6 @@ PythagoreanTriple getPythagoreanTriple(int maxnum) {
 			v.imag = buff;
 		}
 		while (b < a && v.real <= maxnum && v.imag <= maxnum) {
-			/*
-			list.c[list.size].real = v.real;
-			list.c[list.size].imag = v.imag;/**/
 			list.c[list.size] = v;
 			list.size++;
 			b++;
