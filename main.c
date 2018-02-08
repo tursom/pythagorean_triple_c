@@ -4,6 +4,27 @@
 #include <string.h>
 
 /*
+ * 判断两个数是否互质
+ */
+int isCoprime(unsigned int a, unsigned int b) {
+	unsigned int buff;
+	if (a < b) {
+		buff = a;
+		a = b;
+		b = buff;
+	}
+	do {
+		buff = a % b;
+		a = b;
+		b = buff;
+	} while (buff != 0);
+	if (a == 1)
+		return 1;
+	else
+		return 0;
+}
+
+/*
  * 结构体complex
  * 定义一个复数，因为只计算整数所以使用的是int
  * real:实部
@@ -11,9 +32,9 @@
  * module:模
  */
 typedef struct {
-	int real;
-	int imag;
-	int module;
+	unsigned int real;
+	unsigned int imag;
+	unsigned int module;
 } complex;
 
 /*
@@ -34,17 +55,25 @@ complex complex_times(const complex *complex1, const complex *complex2) {
 
 //获得斜边长小于某个长度的所有勾股数的对数的总数
 //计算速度很快
-int getLenthOfPythagoreanTriple(int maxnum) {
+unsigned int getLenthOfPythagoreanTriple(int maxnum) {
 	int n2 = (int) sqrt(maxnum);
 	complex v;
-	int n = 0;
-	for (int a = 1; a <= n2; a++) {
-		int b = 1;
+	unsigned int n = 0;
+	for (unsigned int a = 1; a <= n2; a++) {
+		unsigned int b = 1;
 		v.real = a;
 		v.imag = b;
 		v = complex_times(&v, &v);
 		while (b < a && v.module <= maxnum) {
-			n++;
+			if (!isCoprime(a, b) || !isCoprime(v.real, v.imag)) {
+				b++;
+				v.real = a;
+				v.imag = b;
+				v = complex_times(&v, &v);
+				continue;
+			}
+			for (unsigned int t = 1; v.module * t <= maxnum; t++)
+				n++;
 			b++;
 			v.real = a;
 			v.imag = b;
@@ -73,32 +102,43 @@ typedef struct {
  * compbuff:复数缓冲区
  * buffsize:复数缓冲区大小
  */
-PythagoreanTriple getPythagoreanTriple(int maxnum, complex *compbuff, int buffsize) {
+PythagoreanTriple getPythagoreanTriple(int maxnum, complex *compbuff, unsigned int buffsize) {
 	int n2 = (int) sqrt(maxnum);
 	PythagoreanTriple list;
 	list.c = compbuff;
 	list.size = 0;
 	complex v;
-	for (int a = 1; a <= n2; a++) {
-		int b = 1;
+	for (unsigned int a = 1; a <= n2; a++) {
+		unsigned int b = 1;
 		v.real = a;
 		v.imag = b;
 		v = complex_times(&v, &v);
 		if (v.real > v.imag) {
-			int buff;
+			unsigned int buff;
 			buff = v.real;
 			v.real = v.imag;
 			v.imag = buff;
 		}
 		while (b < a && v.module <= maxnum && list.size < buffsize) {
-			list.c[list.size] = v;
-			list.size++;
+			if (!isCoprime(a, b) || !isCoprime(v.real, v.imag)) {
+				b++;
+				v.real = a;
+				v.imag = b;
+				v = complex_times(&v, &v);
+				continue;
+			}
+			for (unsigned int t = 1; v.module * t < maxnum; t++) {
+				list.c[list.size].real = v.real * t;
+				list.c[list.size].imag = v.imag * t;
+				list.c[list.size].module = v.module * t;
+				list.size++;
+			}
 			b++;
 			v.real = a;
 			v.imag = b;
 			v = complex_times(&v, &v);
 			if (v.real > v.imag) {
-				int buff;
+				unsigned int buff;
 				buff = v.real;
 				v.real = v.imag;
 				v.imag = buff;
@@ -156,18 +196,6 @@ void sortPythagoreanTriple(PythagoreanTriple *p) {
 	complex *sbuff = malloc(sizeof(complex) * p->size);
 	sortPythagoreanTripleReal(p, sbuff);
 	free(sbuff);
-	/*
-	for (int size = 1; size < p->size; size++) {
-		for (int i = size; i > 0; i--) {
-			if (p->c[i].real < p->c[i - 1].real) {
-				buff = p->c[i];
-				p->c[i] = p->c[i - 1];
-				p->c[i - 1] = buff;
-			} else {
-				break;
-			}
-		}
-	}/**/
 	//在复数的模排序的基础上再对实部进行由小到大的排序
 	for (int size = 1; size < p->size; size++) {
 		for (int i = size; i > 0; i--) {
@@ -186,7 +214,7 @@ void sortPythagoreanTriple(PythagoreanTriple *p) {
  * 判断字符串s1是否比s2小
  */
 int str_smaller(char *s1, char *s2) {
-	return strlen(s1) > strlen(s2) || strcmp(s1, s2) > 0;
+	return *s2 == '-' || strlen(s1) < strlen(s2) || strcmp(s1, s2) < 0;
 }
 
 /*
@@ -206,8 +234,8 @@ int main(int argc, char *argv[]) {
 	if (argc > 1) {
 		//判断最大值是否溢出
 		char c[32] = {'\0'};
-		int a = 1;
-		sprintf(c, "%d", (a < 0 < (sizeof(a) * 8 - 1)) - 1);
+		unsigned int a = 1;
+		sprintf(c, "%d", (a << (sizeof(a) * 8 - 1)) - 1);
 		if (str_smaller(c, argv[1])) {
 			//如果溢出
 			//输出错误提示
@@ -217,7 +245,7 @@ int main(int argc, char *argv[]) {
 			return 1;
 		}
 		//如果没有溢出
-		maxnum = atoi(argv[1]);
+		maxnum = (unsigned int) atol(argv[1]);
 	}
 
 	int type = 0;
@@ -236,7 +264,7 @@ int main(int argc, char *argv[]) {
 	if (!type) {
 		//如果是0
 		//获取元素总数
-		int buffsize = getLenthOfPythagoreanTriple(maxnum);
+		unsigned int buffsize = getLenthOfPythagoreanTriple(maxnum);
 		//申请内存
 		complex *c = malloc(sizeof(complex) * buffsize);
 		//获取结果数组
@@ -255,18 +283,18 @@ int main(int argc, char *argv[]) {
 				printf("%d,\t%d,\t%d\n", p.c[i].real, p.c[i].imag, p.c[i].module);
 			}
 			//打印元素总数
-			printf("%dnumbers\n", p.size);
+			printf("%unumbers\n", p.size);
 		}
 		//释放内存
 		free(c);
 	} else {
 		//如果是1
 		//获取元素数目
-		int number = getLenthOfPythagoreanTriple(maxnum);
+		unsigned int number = getLenthOfPythagoreanTriple(maxnum);
 		//判断是否需要输出
 		if (!output)
 			//打印元素数目
-			printf("%dnumbers\n", number);
+			printf("%unumbers\n", number);
 	}
 
 	//程序结束
