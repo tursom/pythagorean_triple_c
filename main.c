@@ -67,13 +67,16 @@ typedef struct {
 /*
  * 获取斜边小于某个长度的所有勾股数
  * 返回值为PythagoreanTriple
- * 返回值为PythagoreanTriple.c由malloc的到，不要忘了free掉
  * 返回值默认不排序
+ *
+ * maxnum:斜边的最大值
+ * compbuff:复数缓冲区
+ * buffsize:复数缓冲区大小
  */
-PythagoreanTriple getPythagoreanTriple(int maxnum) {
+PythagoreanTriple getPythagoreanTriple(int maxnum, complex *compbuff, int buffsize) {
 	int n2 = (int) sqrt(maxnum);
 	PythagoreanTriple list;
-	list.c = malloc(sizeof(complex) * getLenthOfPythagoreanTriple(maxnum));
+	list.c = compbuff;
 	list.size = 0;
 	complex v;
 	for (int a = 1; a <= n2; a++) {
@@ -87,7 +90,7 @@ PythagoreanTriple getPythagoreanTriple(int maxnum) {
 			v.real = v.imag;
 			v.imag = buff;
 		}
-		while (b < a && v.module <= maxnum) {
+		while (b < a && v.module <= maxnum && list.size < buffsize) {
 			list.c[list.size] = v;
 			list.size++;
 			b++;
@@ -107,8 +110,10 @@ PythagoreanTriple getPythagoreanTriple(int maxnum) {
 
 /*
  * 根据复数的模对复数进行由小到大的二分法排序
+ * buff为长度大于等于sizeof(complex) * p->size的缓冲区
+ * 这样设计是为了节省申请内存的时间
  */
-void sortPythagoreanTripleReal(PythagoreanTriple *p) {
+void sortPythagoreanTripleReal(PythagoreanTriple *p, complex *buff) {
 	if (p->size <= 1) {
 		return;
 	}
@@ -117,10 +122,10 @@ void sortPythagoreanTripleReal(PythagoreanTriple *p) {
 	p1.size /= 2;
 	p2.c = p1.c + p1.size;
 	p2.size -= p1.size;
-	sortPythagoreanTripleReal(&p1);
-	sortPythagoreanTripleReal(&p2);
+	sortPythagoreanTripleReal(&p1, buff);
+	sortPythagoreanTripleReal(&p2, buff);
 
-	complex *buff = malloc(sizeof(complex) * p->size);
+	//complex *buff = malloc(sizeof(complex) * p->size);
 	int i1 = 0, i2 = 0;
 	for (int i = 0; i < p->size; i++) {
 		if (i1 == p1.size) {
@@ -138,7 +143,6 @@ void sortPythagoreanTripleReal(PythagoreanTriple *p) {
 	for (int i = 0; i < p->size; i++) {
 		p->c[i] = buff[i];
 	}
-	free(buff);
 }
 
 /*
@@ -149,7 +153,9 @@ void sortPythagoreanTriple(PythagoreanTriple *p) {
 	//缓存
 	complex buff;
 	//根据复数的模对复数进行由小到大的二分法排序
-	sortPythagoreanTripleReal(p);
+	complex *sbuff = malloc(sizeof(complex) * p->size);
+	sortPythagoreanTripleReal(p, sbuff);
+	free(sbuff);
 	/*
 	for (int size = 1; size < p->size; size++) {
 		for (int i = size; i > 0; i--) {
@@ -185,12 +191,13 @@ int str_smaller(char *s1, char *s2) {
 
 /*
  * 程序入口函数
- * 第一个参数为最大值，默认为0
- * 第二个参数为计算模式，默认为0
+ *
+ * 程序第一个参数为最大值，默认为0
+ * 程序第二个参数为计算模式，默认为0
  *  0：得到所有的勾股数
  *  1：仅得到勾股数的数目
- * 第三个参数为是否输出，默认为1（输出）
- * 第四个参数为是否排序，默认为0（不排序）
+ * 程序第三个参数为是否输出，默认为1（输出）
+ * 程序第四个参数为是否排序，默认为0（不排序）
  */
 int main(int argc, char *argv[]) {
 	//斜边最大值，默认为0
@@ -228,8 +235,12 @@ int main(int argc, char *argv[]) {
 	//判断计算方式
 	if (!type) {
 		//如果是0
+		//获取元素总数
+		int buffsize = getLenthOfPythagoreanTriple(maxnum);
+		//申请内存
+		complex *c = malloc(sizeof(complex) * buffsize);
 		//获取结果数组
-		PythagoreanTriple p = getPythagoreanTriple(maxnum);
+		PythagoreanTriple p = getPythagoreanTriple(maxnum, c, buffsize);
 		//判断是否需要输出
 		if (!output) {
 			//如果需要输出
@@ -247,7 +258,7 @@ int main(int argc, char *argv[]) {
 			printf("%dnumbers\n", p.size);
 		}
 		//释放内存
-		free(p.c);
+		free(c);
 	} else {
 		//如果是1
 		//获取元素数目
