@@ -156,8 +156,8 @@ PythagoreanTriple getPythagoreanTriple(int maxnum, complex *compbuff, unsigned i
 void _sortPythagoreanTripleReal(PythagoreanTriple *p, complex *buff);
 void sortPythagoreanTripleReal(PythagoreanTriple *p) {
 	complex *buff = malloc(sizeof(complex) * p->size);
-	sortPythagoreanTripleReal(p, buff);
-	free buff;
+	_sortPythagoreanTripleReal(p, buff);
+	free(buff);
 }
 void _sortPythagoreanTripleReal(PythagoreanTriple *p, complex *buff) {
 	if (p->size <= 1) {
