@@ -153,7 +153,13 @@ PythagoreanTriple getPythagoreanTriple(int maxnum, complex *compbuff, unsigned i
  * buff为长度大于等于sizeof(complex) * p->size的缓冲区
  * 这样设计是为了节省申请内存的时间
  */
-void sortPythagoreanTripleReal(PythagoreanTriple *p, complex *buff) {
+void _sortPythagoreanTripleReal(PythagoreanTriple *p, complex *buff);
+void sortPythagoreanTripleReal(PythagoreanTriple *p) {
+	complex *buff = malloc(sizeof(complex) * p->size);
+	sortPythagoreanTripleReal(p, buff);
+	free buff;
+}
+void _sortPythagoreanTripleReal(PythagoreanTriple *p, complex *buff) {
 	if (p->size <= 1) {
 		return;
 	}
@@ -162,8 +168,8 @@ void sortPythagoreanTripleReal(PythagoreanTriple *p, complex *buff) {
 	p1.size /= 2;
 	p2.c = p1.c + p1.size;
 	p2.size -= p1.size;
-	sortPythagoreanTripleReal(&p1, buff);
-	sortPythagoreanTripleReal(&p2, buff);
+	_sortPythagoreanTripleReal(&p1, buff);
+	_sortPythagoreanTripleReal(&p2, buff);
 
 	//complex *buff = malloc(sizeof(complex) * p->size);
 	int i1 = 0, i2 = 0;
@@ -193,9 +199,7 @@ void sortPythagoreanTriple(PythagoreanTriple *p) {
 	//缓存
 	complex buff;
 	//根据复数的模对复数进行由小到大的二分法排序
-	complex *sbuff = malloc(sizeof(complex) * p->size);
-	sortPythagoreanTripleReal(p, sbuff);
-	free(sbuff);
+	sortPythagoreanTripleReal(p);
 	//在复数的模排序的基础上再对实部进行由小到大的排序
 	for (int size = 1; size < p->size; size++) {
 		for (int i = size; i > 0; i--) {
