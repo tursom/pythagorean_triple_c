@@ -154,11 +154,13 @@ PythagoreanTriple getPythagoreanTriple(int maxnum, complex *compbuff, unsigned i
  * 这样设计是为了节省申请内存的时间
  */
 void _sortPythagoreanTripleReal(PythagoreanTriple *p, complex *buff);
+
 void sortPythagoreanTripleReal(PythagoreanTriple *p) {
 	complex *buff = malloc(sizeof(complex) * p->size);
 	_sortPythagoreanTripleReal(p, buff);
 	free(buff);
 }
+
 void _sortPythagoreanTripleReal(PythagoreanTriple *p, complex *buff) {
 	if (p->size <= 1) {
 		return;
@@ -218,7 +220,7 @@ void sortPythagoreanTriple(PythagoreanTriple *p) {
  * 判断字符串s1是否比s2小
  */
 int str_smaller(char *s1, char *s2) {
-	return *s2 == '-' || strlen(s1) < strlen(s2) || strcmp(s1, s2) < 0;
+	return !(*s2 != '-' || strlen(s1) > strlen(s2) || strcmp(s1, s2) > 0);
 }
 
 /*
